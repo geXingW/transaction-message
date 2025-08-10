@@ -1,7 +1,9 @@
 package top.gexingw.spring.transaction.message.application.service.impl;
 
 import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
+import top.gexingw.spring.transaction.message.domain.message.MessageSendStatus;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
+import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
 import top.gexingw.spring.transaction.message.infrastructure.util.TransactionUtil;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +42,7 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
     public void sendFailed(Serializable id) {
         TransactionMessage transactionMessage = transactionMessageRepository.find(id);
 
-        transactionMessage.sendFailed();
+        transactionMessage.setSendStatus(MessageSendStatus.FAILED);
         transactionMessageRepository.save(transactionMessage);
     }
 
@@ -50,6 +52,16 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
         transactionMessageRepository.save(transactionMessage);
 
         TransactionUtil.doAfterCommitted(sendCallback);
+    }
+
+    @Override
+    public <Payload> void send(ITransactionMessage<Payload> transactionMessage) {
+        transactionMessageRepository.save(transactionMessage);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public <Payload> void send(ITransactionMessage<Payload> transactionMessage, Runnable sendCallback) {
+        transactionMessageRepository.save(transactionMessage);
     }
 
 }

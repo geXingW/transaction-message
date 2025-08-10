@@ -1,21 +1,22 @@
 package top.gexingw.spring.transaction.message.infrastructure.config;
 
-
-import top.gexingw.spring.transaction.message.infrastructure.repository.JdbcTransactionMessageRepositoryImpl;
-import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
-import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
-import top.gexingw.spring.transaction.message.application.service.impl.JdbcTransactionMessageServiceImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcOperations;
+import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
+import top.gexingw.spring.transaction.message.application.service.impl.JdbcTransactionMessageServiceImpl;
+import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
+import top.gexingw.spring.transaction.message.infrastructure.repository.JdbcTransactionMessageRepositoryImpl;
 
 /**
  * @author GeXingW
  */
 @AutoConfiguration
 @AutoConfigureAfter({JdbcOperations.class})
+@EnableConfigurationProperties(TransactionMessageConfigProperties.class)
 public class TransactionMessageAutoConfiguration {
 
     @Bean
@@ -26,8 +27,8 @@ public class TransactionMessageAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TransactionMessageRepository transactionMessageRepository(JdbcOperations jdbcOperations) {
-        return new JdbcTransactionMessageRepositoryImpl(jdbcOperations);
+    public TransactionMessageRepository transactionMessageRepository(JdbcOperations jdbcOperations, TransactionMessageConfigProperties properties) {
+        return new JdbcTransactionMessageRepositoryImpl(jdbcOperations, properties);
     }
 
 }

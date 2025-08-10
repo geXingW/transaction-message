@@ -6,7 +6,7 @@
 
     <groupId>top.gexingw</groupId>
     <artifactId>spring-transaction-message</artifactId>
-    <version>0.0.3.1</version>
+    <version>0.0.3.3</version>
     <name>Spring Transaction Message</name>
     <description>Spring Transaction Message</description>
     <url>https://github.com/geXingW/transaction-message</url>

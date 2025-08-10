@@ -1,6 +1,7 @@
 package top.gexingw.spring.transaction.message.application.service;
 
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
+import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -21,5 +22,7 @@ public interface TransactionMessageService {
 
     @Transactional(rollbackFor = Exception.class)
     void send(TransactionMessage transactionMessage, Runnable sendCallback);
+
+    <Payload> void send(ITransactionMessage<Payload> transactionMessage);
 
 }
