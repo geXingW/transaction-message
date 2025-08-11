@@ -1,12 +1,13 @@
 package top.gexingw.spring.transaction.message.application.service.impl;
 
+import org.springframework.transaction.annotation.Transactional;
 import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
 import top.gexingw.spring.transaction.message.domain.message.MessageSendStatus;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
-import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
+import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
+import top.gexingw.spring.transaction.message.infrastructure.support.TransactionMessageSender;
 import top.gexingw.spring.transaction.message.infrastructure.util.TransactionUtil;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -19,8 +20,13 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
 
     private final TransactionMessageRepository transactionMessageRepository;
 
-    public JdbcTransactionMessageServiceImpl(TransactionMessageRepository transactionMessageRepository) {
+    private final TransactionMessageSender transactionMessageSender;
+
+    public JdbcTransactionMessageServiceImpl(
+            TransactionMessageRepository transactionMessageRepository, TransactionMessageSender transactionMessageSender
+    ) {
         this.transactionMessageRepository = transactionMessageRepository;
+        this.transactionMessageSender = transactionMessageSender;
     }
 
     @Override
@@ -52,6 +58,10 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
         transactionMessageRepository.save(transactionMessage);
 
         TransactionUtil.doAfterCommitted(sendCallback);
+
+        TransactionUtil.doAfterCommitted(() -> {
+            transactionMessageSender.send(transactionMessage);
+        });
     }
 
     @Override

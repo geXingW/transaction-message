@@ -10,6 +10,7 @@ import top.gexingw.spring.transaction.message.application.service.TransactionMes
 import top.gexingw.spring.transaction.message.application.service.impl.JdbcTransactionMessageServiceImpl;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
 import top.gexingw.spring.transaction.message.infrastructure.repository.JdbcTransactionMessageRepositoryImpl;
+import top.gexingw.spring.transaction.message.infrastructure.support.TransactionMessageSender;
 
 /**
  * @author GeXingW
@@ -21,8 +22,10 @@ public class TransactionMessageAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TransactionMessageService transactionMessageService(TransactionMessageRepository transactionMessageRepository) {
-        return new JdbcTransactionMessageServiceImpl(transactionMessageRepository);
+    public TransactionMessageService transactionMessageService(
+            TransactionMessageRepository transactionMessageRepository, TransactionMessageSender transactionMessageSender
+    ) {
+        return new JdbcTransactionMessageServiceImpl(transactionMessageRepository, transactionMessageSender);
     }
 
     @Bean
