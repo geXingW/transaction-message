@@ -61,19 +61,14 @@ public class JdbcTransactionMessageRepositoryImpl implements TransactionMessageR
 
     @Override
     public <Payload> void save(ITransactionMessage<Payload> _transactionMessage) {
-        if (_transactionMessage.getId() != null) {
-            // 更新逻辑待实现
-            return;
-        }
-
         // 创建新消息
         TransactionMessage transactionMessage = TransactionMessageFactory.createFrom(_transactionMessage);
         // 最大重试次数
         Integer maxRetryCount = transactionMessage.getMaxRetryCount() != null ? transactionMessage.getMaxRetryCount() : configProperties.getMaxRetryCount();
 
         Object[] args = {
-                transactionMessage.getId(), transactionMessage.getExchange(), transactionMessage.getRoutingKey(), transactionMessage.getQueue(),
-                maxRetryCount, transactionMessage.getRetriedCount(), transactionMessage.getPayload(), transactionMessage.getSendStatus().getValue()
+                transactionMessage.getId(), transactionMessage.getExchange(), transactionMessage.getRoutingKey(), transactionMessage.getQueue()
+                , maxRetryCount, transactionMessage.getRetriedCount(), transactionMessage.getPayload(), transactionMessage.getSendStatus().getValue()
                 , transactionMessage.getDeliveryMode().getValue()
         };
 

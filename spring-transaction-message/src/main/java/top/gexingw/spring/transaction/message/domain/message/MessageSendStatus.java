@@ -9,6 +9,8 @@ public enum MessageSendStatus {
 
     FAILED("FAILED"),
 
+    SUCCEED("SUCCEED")
+
     ;
 
     private final String value;

@@ -14,14 +14,14 @@ public interface TransactionMessageService {
 
     List<TransactionMessage> queryRetryableMessages();
 
-    List<TransactionMessage> queryRetryableMessages(long currentTimestamp);
+    List<TransactionMessage> queryRetryableMessages(long startTimestamp);
 
     void sendSucceed(Serializable id);
 
     void sendFailed(Serializable id);
 
     @Transactional(rollbackFor = Exception.class)
-    void send(TransactionMessage transactionMessage, Runnable sendCallback);
+    <Payload> void send(ITransactionMessage<Payload> transactionMessage, Runnable sendCallback);
 
     <Payload> void send(ITransactionMessage<Payload> transactionMessage);
 

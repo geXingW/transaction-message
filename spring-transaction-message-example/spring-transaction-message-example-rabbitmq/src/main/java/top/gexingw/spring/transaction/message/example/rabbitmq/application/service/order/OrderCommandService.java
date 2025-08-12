@@ -1,4 +1,4 @@
-package top.gexingw.spring.transaction.message.example.rabbitmq.order;
+package top.gexingw.spring.transaction.message.example.rabbitmq.application.service.order;
 
 /**
  * @author GeXingW

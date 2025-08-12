@@ -24,8 +24,11 @@ public class TransactionMessageAutoConfiguration {
     @ConditionalOnMissingBean
     public TransactionMessageService transactionMessageService(
             TransactionMessageRepository transactionMessageRepository, TransactionMessageSender transactionMessageSender
+            , TransactionMessageConfigProperties transactionMessageConfigProperties
     ) {
-        return new JdbcTransactionMessageServiceImpl(transactionMessageRepository, transactionMessageSender);
+        return new JdbcTransactionMessageServiceImpl(
+                transactionMessageRepository, transactionMessageSender, transactionMessageConfigProperties
+        );
     }
 
     @Bean

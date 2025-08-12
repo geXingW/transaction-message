@@ -1,15 +1,10 @@
 package top.gexingw.spring.transaction.message.example.rabbitmq.infrastructure.config;
 
-import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
-import top.gexingw.spring.transaction.message.example.rabbitmq.infrastructure.util.JacksonUtil;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
@@ -17,6 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
+import top.gexingw.spring.transaction.message.example.rabbitmq.infrastructure.util.JacksonUtil;
+import top.gexingw.spring.transaction.message.infrastructure.support.TransactionMessageSender;
+import top.gexingw.spring.transaction.message.rabbitmq.RabbitMQConfirmCallback;
+import top.gexingw.spring.transaction.message.rabbitmq.RabbitMQTransactionMessageSender;
 
 /**
  * @author GeXingW
@@ -35,7 +35,8 @@ public class RabbitMqConfiguration {
         rabbitTemplate.setConnectionFactory(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter());
 
-        rabbitTemplate.setConfirmCallback(new ConfirmCallback(transactionMessageService));
+        rabbitTemplate.setConfirmCallback(new RabbitMQConfirmCallback(transactionMessageService));
+        rabbitTemplate.setConfirmCallback(new RabbitMQConfirmCallback(transactionMessageService));
         rabbitTemplate.setReturnsCallback(new ReturnCallback());
 
         rabbitTemplate.setMandatory(true);
@@ -44,6 +45,7 @@ public class RabbitMqConfiguration {
         backOffPolicy.setInitialInterval(1000);
         backOffPolicy.setMultiplier(2);
         backOffPolicy.setMaxInterval(2000);
+
 
 
         return rabbitTemplate;
@@ -62,22 +64,27 @@ public class RabbitMqConfiguration {
         }
     }
 
-    @AllArgsConstructor
-    public static class ConfirmCallback implements RabbitTemplate.ConfirmCallback {
-
-        private final TransactionMessageService transactionMessageService;
-
-        @Override
-        public void confirm(CorrelationData correlationData, boolean ack, @Nullable String cause) {
-            if (ack) {
-                log.info("消息发送成功，内容：{}", JacksonUtil.toJson(correlationData));
-                transactionMessageService.sendSucceed(correlationData.getId());
-                log.info("消息发送成功，已移除：{}", JacksonUtil.toJson(correlationData));
-            } else {
-                log.error("消息发送失败，内容：{}，原因：{}", JacksonUtil.toJson(correlationData), cause);
-                transactionMessageService.sendFailed(correlationData.getId());
-            }
-
-        }
+    @Bean
+    public TransactionMessageSender transactionMessageSender(RabbitTemplate rabbitTemplate) {
+        return new RabbitMQTransactionMessageSender(rabbitTemplate);
     }
+
+//    @AllArgsConstructor
+//    public static class ConfirmCallback implements RabbitTemplate.ConfirmCallback {
+//
+//        private final TransactionMessageService transactionMessageService;
+//
+//        @Override
+//        public void confirm(CorrelationData correlationData, boolean ack, @Nullable String cause) {
+//            if (ack) {
+//                log.info("消息发送成功，内容：{}", JacksonUtil.toJson(correlationData));
+//                transactionMessageService.sendSucceed(correlationData.getId());
+//                log.info("消息发送成功，已移除：{}", JacksonUtil.toJson(correlationData));
+//            } else {
+//                log.error("消息发送失败，内容：{}，原因：{}", JacksonUtil.toJson(correlationData), cause);
+//                transactionMessageService.sendFailed(correlationData.getId());
+//            }
+//
+//        }
+//    }
 }
