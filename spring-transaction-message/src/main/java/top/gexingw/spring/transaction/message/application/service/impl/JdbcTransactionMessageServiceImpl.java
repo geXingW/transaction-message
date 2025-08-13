@@ -1,6 +1,9 @@
 package top.gexingw.spring.transaction.message.application.service.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
 import top.gexingw.spring.transaction.message.domain.message.MessageSendStatus;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
@@ -18,6 +21,8 @@ import java.util.List;
  * @author GeXingW
  */
 public class JdbcTransactionMessageServiceImpl implements TransactionMessageService {
+
+    public static final Logger logger = LoggerFactory.getLogger(JdbcTransactionMessageServiceImpl.class);
 
     private final TransactionMessageRepository transactionMessageRepository;
     private final TransactionMessageSender transactionMessageSender;
@@ -76,9 +81,19 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
     public <Payload> void send(ITransactionMessage<Payload> transactionMessage) {
         transactionMessageRepository.save(transactionMessage);
 
-        TransactionUtil.doAfterCommitted(() -> {
+        // 如果当前没有开启事务，就走同步发送
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            logger.warn("当前未开启事务，消息将同步发送");
             transactionMessageSender.send(transactionMessage);
-        });
+            logger.warn("当前未开启事务，消息已同步发送");
+        } else {
+            // 只有在开启事务后，callback才会被触发
+            TransactionUtil.doAfterCommitted(() -> {
+                logger.debug("事务消息已落库，准备立即发送到MQ");
+                transactionMessageSender.send(transactionMessage);
+                logger.debug("事务消息已落库，已经发送到MQ");
+            });
+        }
     }
 
     @Transactional(rollbackFor = Exception.class)
