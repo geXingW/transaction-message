@@ -1,4 +1,4 @@
-package top.gexingw.spring.transaction.message.infrastructure.convert;
+package top.gexingw.spring.transaction.message.infrastructure.converter;
 
 import top.gexingw.spring.transaction.message.domain.message.MessageDeliveryMode;
 import top.gexingw.spring.transaction.message.domain.message.MessageSendStatus;

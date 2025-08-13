@@ -8,7 +8,7 @@ import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessageFactory;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessageRepository;
 import top.gexingw.spring.transaction.message.infrastructure.config.TransactionMessageConfigProperties;
-import top.gexingw.spring.transaction.message.infrastructure.convert.MessageConverter;
+import top.gexingw.spring.transaction.message.infrastructure.converter.MessageConverter;
 import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
 
 import java.io.Serializable;
