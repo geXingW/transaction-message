@@ -36,7 +36,6 @@ public class RabbitMqConfiguration {
         rabbitTemplate.setMessageConverter(messageConverter());
 
         rabbitTemplate.setConfirmCallback(new RabbitMQConfirmCallback(transactionMessageService));
-        rabbitTemplate.setConfirmCallback(new RabbitMQConfirmCallback(transactionMessageService));
         rabbitTemplate.setReturnsCallback(new ReturnCallback());
 
         rabbitTemplate.setMandatory(true);
