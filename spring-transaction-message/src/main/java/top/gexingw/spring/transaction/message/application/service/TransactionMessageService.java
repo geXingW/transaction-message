@@ -25,4 +25,9 @@ public interface TransactionMessageService {
 
     <Payload> void send(ITransactionMessage<Payload> transactionMessage);
 
+    /**
+     * 查询当前到达时间的消息，并进行发送
+     */
+    void run();
+
 }

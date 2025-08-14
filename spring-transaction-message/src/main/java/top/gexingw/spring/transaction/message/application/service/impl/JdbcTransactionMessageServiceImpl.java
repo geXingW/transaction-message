@@ -58,7 +58,7 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
     @Override
     public void sendFailed(Serializable id) {
         TransactionMessage transactionMessage = transactionMessageRepository.find(id);
-
+        transactionMessageRepository.save(transactionMessage);
         // 当前重试次数
         int retriedCount = transactionMessage.getRetriedCount() == null ? 0 : transactionMessage.getRetriedCount();
         // 如果达到最大重试次数，不再重试；状态改为失败
@@ -82,7 +82,7 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
         transactionMessageRepository.save(transactionMessage);
 
         // 如果当前没有开启事务，就走同步发送
-        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             logger.warn("当前未开启事务，消息将同步发送");
             transactionMessageSender.send(transactionMessage);
             logger.warn("当前未开启事务，消息已同步发送");
@@ -93,6 +93,32 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
                 transactionMessageSender.send(transactionMessage);
                 logger.debug("事务消息已落库，已经发送到MQ");
             });
+        }
+    }
+
+    @Override
+    public void run() {
+        long startTimestamp = Instant.now().getEpochSecond();
+        List<TransactionMessage> transactionMessages = transactionMessageRepository.queryAllRetryable(startTimestamp);
+        for (TransactionMessage transactionMessage : transactionMessages) {
+            // 当前重试次数
+            int retriedCount = transactionMessage.getRetriedCount() == null ? 0 : transactionMessage.getRetriedCount();
+            // 如果达到最大重试次数，不再重试；状态改为失败
+            if (retriedCount >= transactionMessageConfigProperties.getMaxRetryCount()) {
+                logger.debug("达到最大重试次数，不再重试");
+                transactionMessage.setSendStatus(MessageSendStatus.FAILED);
+                transactionMessageRepository.save(transactionMessage);
+                return;
+            }
+
+            // 下次重试时间为当前时间 + 重试间隔
+            transactionMessage.setRetriedCount(++retriedCount);
+            // 下次重试时间为当前时间 + 重试间隔
+            long nextRetryTime = Instant.now().plus(transactionMessageConfigProperties.getRetryInterval()).getEpochSecond();
+            transactionMessage.setNextRetryTime(nextRetryTime);
+            logger.debug("消息重试,nextRetryTime={},retriedCount={}", nextRetryTime, retriedCount);
+
+            transactionMessageRepository.save(transactionMessage);
         }
     }
 
