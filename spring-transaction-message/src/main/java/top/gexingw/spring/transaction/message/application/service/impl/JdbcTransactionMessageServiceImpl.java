@@ -108,7 +108,7 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
                 logger.debug("达到最大重试次数，不再重试");
                 transactionMessage.setSendStatus(MessageSendStatus.FAILED);
                 transactionMessageRepository.save(transactionMessage);
-                return;
+                continue;
             }
 
             // 下次重试时间为当前时间 + 重试间隔
