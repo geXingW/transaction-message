@@ -33,9 +33,11 @@ public class TransactionMessageSchedule {
             log.info("查询到需要发送的事务消息：{}", JacksonUtil.toJson(transactionMessages));
         }
 
-        for (TransactionMessage transactionMessage : transactionMessages) {
-            transactionMessageService.send(transactionMessage);
-        }
+        transactionMessageService.run();
+
+//        for (TransactionMessage transactionMessage : transactionMessages) {
+//            transactionMessageService.resend(transactionMessage);
+//        }
 
     }
 

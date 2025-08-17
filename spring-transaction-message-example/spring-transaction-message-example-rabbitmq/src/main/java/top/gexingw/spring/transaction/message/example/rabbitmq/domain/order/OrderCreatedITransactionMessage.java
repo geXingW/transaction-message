@@ -9,7 +9,7 @@ import top.gexingw.spring.transaction.message.domain.message.MessageDeliveryMode
 
 import java.io.Serializable;
 
-@Getter
+@Data
 @NoArgsConstructor
 @Accessors(chain = true)
 public class OrderCreatedITransactionMessage implements ITransactionMessage<OrderCreatedITransactionMessage.Payload> {

@@ -22,6 +22,7 @@ public class OrderCommandServiceImpl implements OrderCommandService {
     @Override
     public void create(Long id) {
         OrderCreatedITransactionMessage orderCreatedMessage = new OrderCreatedITransactionMessage(1L, 2L);
+        orderCreatedMessage.setId(1L);
         transactionMessageService.send(orderCreatedMessage);
     }
 
