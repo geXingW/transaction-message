@@ -1,5 +1,6 @@
 package top.gexingw.spring.transaction.message.rabbitmq;
 
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class RabbitMQTransactionMessageSenderTest {
     @Test
     void send_SimpleMode_CallsConvertAndSendWithQueue() {
         // 准备
-        ITransactionMessage<String> message = createTestMessage(MessageDeliveryMode.SIMPLE, "test-queue", "", "");
+        ITransactionMessage<Object> message = createTestMessage(MessageDeliveryMode.SIMPLE, "test-queue", "", "");
 
         // 执行
         sender.send(message);
@@ -49,7 +50,7 @@ class RabbitMQTransactionMessageSenderTest {
     @Test
     void send_FanoutMode_CallsConvertAndSendWithExchange() {
         // 准备
-        ITransactionMessage<String> message = createTestMessage(MessageDeliveryMode.FANOUT, "", "test-exchange", "");
+        ITransactionMessage<Object> message = createTestMessage(MessageDeliveryMode.FANOUT, "", "test-exchange", "");
 
         // 执行
         sender.send(message);
@@ -61,7 +62,7 @@ class RabbitMQTransactionMessageSenderTest {
     @Test
     void send_TopicMode_CallsConvertAndSendWithExchangeAndRoutingKey() {
         // 准备
-        ITransactionMessage<String> message = createTestMessage(MessageDeliveryMode.TOPIC, "", "test-exchange", "test.routing.key");
+        ITransactionMessage<Object> message = createTestMessage(MessageDeliveryMode.TOPIC, "", "test-exchange", "test.routing.key");
 
         // 执行
         sender.send(message);
@@ -70,15 +71,15 @@ class RabbitMQTransactionMessageSenderTest {
         verify(rabbitTemplate).convertAndSend(eq("test-exchange"), eq("test.routing.key"), eq("test payload"));
     }
 
-    private ITransactionMessage<String> createTestMessage(MessageDeliveryMode deliveryMode, String queue, String exchange, String routingKey) {
-        return new ITransactionMessage<String>() {
+    private ITransactionMessage<Object> createTestMessage(MessageDeliveryMode deliveryMode, String queue, String exchange, String routingKey) {
+        return new ITransactionMessage<Object>() {
             @Override
             public Long getId() {
                 return 1L;
             }
 
             @Override
-            public String getPayload() {
+            public Object getPayload() {
                 return "test payload";
             }
 
@@ -100,6 +101,11 @@ class RabbitMQTransactionMessageSenderTest {
             @Override
             public MessageDeliveryMode getDeliveryMode() {
                 return deliveryMode;
+            }
+
+            @Override
+            public @Nullable Integer getMaxRetryCount() {
+                return ITransactionMessage.super.getMaxRetryCount();
             }
         };
     }

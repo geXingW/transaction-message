@@ -15,6 +15,11 @@ public class RabbitMQConfirmCallback implements RabbitTemplate.ConfirmCallback {
 
     @Override
     public void confirm(CorrelationData correlationData, boolean ack, @Nullable String cause) {
+        // correlationData为null时不处理
+        if (correlationData == null) {
+            return;
+        }
+        
         if (ack) {
             transactionMessageService.sendSucceed(correlationData.getId());
             return;
