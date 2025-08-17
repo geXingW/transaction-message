@@ -12,12 +12,12 @@ public interface TransactionMessageRepository {
 
     List<TransactionMessage> queryAllRetryable(long currentTimestamp);
 
-    void save(TransactionMessage transactionMessage);
+    <Payload> void insert(ITransactionMessage<Payload> _transactionMessage);
+
+    void update(TransactionMessage transactionMessage);
 
     void remove(Serializable id);
 
     TransactionMessage find(Serializable id);
-
-    <Payload> void save(ITransactionMessage<Payload> transactionMessage);
-
+    
 }

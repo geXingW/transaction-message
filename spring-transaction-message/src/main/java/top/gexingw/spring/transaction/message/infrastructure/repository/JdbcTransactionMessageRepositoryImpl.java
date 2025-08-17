@@ -50,17 +50,7 @@ public class JdbcTransactionMessageRepositoryImpl implements TransactionMessageR
     }
 
     @Override
-    public void save(TransactionMessage transactionMessage) {
-        if (transactionMessage.getId() == null) {
-            this.create(transactionMessage);
-            return;
-        }
-
-        this.update(transactionMessage);
-    }
-
-    @Override
-    public <Payload> void save(ITransactionMessage<Payload> _transactionMessage) {
+    public <Payload> void insert(ITransactionMessage<Payload> _transactionMessage) {
         // 创建新消息
         TransactionMessage transactionMessage = TransactionMessageFactory.createFrom(_transactionMessage);
         // 最大重试次数
@@ -75,10 +65,6 @@ public class JdbcTransactionMessageRepositoryImpl implements TransactionMessageR
         if (jdbcOperations.update(INSERT_SQL, args) <= 0) {
             throw new RuntimeException("保存事务消息失败");
         }
-    }
-
-    public <Payload> void update(ITransactionMessage<Payload> transactionMessage) {
-        // 待实现
     }
 
     public void create(TransactionMessage transactionMessage) {
@@ -99,7 +85,8 @@ public class JdbcTransactionMessageRepositoryImpl implements TransactionMessageR
         transactionMessage.setId(id);
     }
 
-    private void update(TransactionMessage transactionMessage) {
+    @Override
+    public void update(TransactionMessage transactionMessage) {
         String sql = "UPDATE transaction_message set retried_count = ?, next_retry_time = ?, send_status = ? WHERE id = ?";
         Object[] args = {
                 transactionMessage.getRetriedCount(), transactionMessage.getNextRetryTime(), transactionMessage.getSendStatus().getValue()

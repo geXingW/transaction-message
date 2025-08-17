@@ -3,6 +3,9 @@ package top.gexingw.spring.transaction.message.domain.message;
 import org.jetbrains.annotations.Nullable;
 import top.gexingw.spring.transaction.message.infrastructure.support.ITransactionMessage;
 
+import java.time.Duration;
+import java.time.Instant;
+
 /**
  * @author GeXingW
  */
@@ -113,6 +116,20 @@ public final class TransactionMessage implements ITransactionMessage<Object> {
 
     public void setNextRetryTime(Long nextRetryTime) {
         this.nextRetryTime = nextRetryTime;
+    }
+
+    public void sendFail(int maxRetryCount) {
+        // 如果达到最大重试次数，不再重试；状态改为失败
+        if (this.getRetriedCount() >= maxRetryCount) {
+            this.setSendStatus(MessageSendStatus.FAILED);
+            return;
+        }
+
+        // 下次重试时间为当前时间 + 重试间隔
+        this.setRetriedCount(++retriedCount);
+        // 下次重试时间为当前时间 + 重试间隔
+        double plusSeconds = Math.pow(2, retriedCount) * 1000;
+        this.setNextRetryTime(Instant.now().plus(Duration.ofMillis((long) plusSeconds)).getEpochSecond());
     }
 
 }

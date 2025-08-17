@@ -2,8 +2,8 @@ package top.gexingw.spring.transaction.message.application.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.Assert;
 import top.gexingw.spring.transaction.message.application.service.TransactionMessageService;
 import top.gexingw.spring.transaction.message.domain.message.MessageSendStatus;
 import top.gexingw.spring.transaction.message.domain.message.TransactionMessage;
@@ -58,77 +58,63 @@ public class JdbcTransactionMessageServiceImpl implements TransactionMessageServ
     @Override
     public void sendFailed(Serializable id) {
         TransactionMessage transactionMessage = transactionMessageRepository.find(id);
-        transactionMessageRepository.save(transactionMessage);
-        // 当前重试次数
-        int retriedCount = transactionMessage.getRetriedCount() == null ? 0 : transactionMessage.getRetriedCount();
-        // 如果达到最大重试次数，不再重试；状态改为失败
-        if (retriedCount >= transactionMessageConfigProperties.getMaxRetryCount()) {
-            transactionMessage.setSendStatus(MessageSendStatus.FAILED);
-            transactionMessageRepository.save(transactionMessage);
-            return;
-        }
+        Assert.notNull(transactionMessage, "消息不存在");
 
-        // 下次重试时间为当前时间 + 重试间隔
-        transactionMessage.setRetriedCount(++retriedCount);
-        // 下次重试时间为当前时间 + 重试间隔
-        long nextRetryTime = Instant.now().plus(transactionMessageConfigProperties.getRetryInterval()).getEpochSecond();
-        transactionMessage.setNextRetryTime(nextRetryTime);
-
-        transactionMessageRepository.save(transactionMessage);
+        // 消息发送失败
+        transactionMessage.sendFail(transactionMessageConfigProperties.getMaxRetryCount());
+        transactionMessageRepository.update(transactionMessage);
     }
 
     @Override
     public <Payload> void send(ITransactionMessage<Payload> transactionMessage) {
-        transactionMessageRepository.save(transactionMessage);
+        this.send(transactionMessage, null);
+    }
+
+    @Override
+    public <Payload> void send(ITransactionMessage<Payload> transactionMessage, Runnable sendCallback) {
+        Long messageId = transactionMessage.getId();
+        Assert.notNull(messageId, "消息ID不能为空");
+
+        TransactionMessage existTransactionMessage = transactionMessageRepository.find(messageId);
+        if (existTransactionMessage == null) {
+            transactionMessageRepository.insert(transactionMessage);
+            return;
+        }
+
+        // 消息发送失败
+        existTransactionMessage.sendFail(transactionMessageConfigProperties.getMaxRetryCount());
+        transactionMessageRepository.update(existTransactionMessage);
 
         // 如果当前没有开启事务，就走同步发送
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
             logger.warn("当前未开启事务，消息将同步发送");
             transactionMessageSender.send(transactionMessage);
             logger.warn("当前未开启事务，消息已同步发送");
+
+            if (sendCallback != null) {
+                sendCallback.run();
+            }
         } else {
-            // 只有在开启事务后，callback才会被触发
             TransactionUtil.doAfterCommitted(() -> {
                 logger.debug("事务消息已落库，准备立即发送到MQ");
                 transactionMessageSender.send(transactionMessage);
                 logger.debug("事务消息已落库，已经发送到MQ");
             });
+
+            if (sendCallback != null) {
+                TransactionUtil.doAfterCommitted(sendCallback);
+            }
         }
     }
 
     @Override
     public void run() {
         long startTimestamp = Instant.now().getEpochSecond();
-        List<TransactionMessage> transactionMessages = transactionMessageRepository.queryAllRetryable(startTimestamp);
+        List<TransactionMessage> transactionMessages = this.queryRetryableMessages(startTimestamp);
         for (TransactionMessage transactionMessage : transactionMessages) {
-            // 当前重试次数
-            int retriedCount = transactionMessage.getRetriedCount() == null ? 0 : transactionMessage.getRetriedCount();
-            // 如果达到最大重试次数，不再重试；状态改为失败
-            if (retriedCount >= transactionMessageConfigProperties.getMaxRetryCount()) {
-                logger.debug("达到最大重试次数，不再重试");
-                transactionMessage.setSendStatus(MessageSendStatus.FAILED);
-                transactionMessageRepository.save(transactionMessage);
-                continue;
-            }
-
-            // 下次重试时间为当前时间 + 重试间隔
-            transactionMessage.setRetriedCount(++retriedCount);
-            // 下次重试时间为当前时间 + 重试间隔
-            long nextRetryTime = Instant.now().plus(transactionMessageConfigProperties.getRetryInterval()).getEpochSecond();
-            transactionMessage.setNextRetryTime(nextRetryTime);
-            logger.debug("消息重试,nextRetryTime={},retriedCount={}", nextRetryTime, retriedCount);
-
-            transactionMessageRepository.save(transactionMessage);
+            this.send(transactionMessage);
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public <Payload> void send(ITransactionMessage<Payload> transactionMessage, Runnable sendCallback) {
-        transactionMessageRepository.save(transactionMessage);
-
-        TransactionUtil.doAfterCommitted(() -> {
-            transactionMessageSender.send(transactionMessage);
-        });
-    }
 
 }
