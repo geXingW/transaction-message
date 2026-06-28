@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion
+    url: https://github.com/geXingW/transaction-message/discussions
+    about: 设计讨论、用法问答、想法交流
+  - name: 🔐 Security
+    url: https://github.com/geXingW/transaction-message/security/policy
+    about: 安全漏洞请走私密渠道，勿在公开 Issue 中报告

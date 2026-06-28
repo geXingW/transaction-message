@@ -1,0 +1,94 @@
+name: 🐛 Bug Report
+description: 报告一个 Bug
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢提交 Bug！请尽可能详细地填写信息，方便快速定位。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 简短清晰地描述发生了什么
+      placeholder: 例如：调用 send() 后消息只入库未发送到 MQ
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 最小复现路径，越详细越好
+      placeholder: |
+        1. 引入依赖 0.0.3.3
+        2. 配置 yml ...
+        3. 实现 ITransactionMessage ...
+        4. 调用 transactionMessageService.send(msg)
+        5. 观察 DB 表有记录但 RabbitMQ 队列无消息
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      placeholder: 消息应当在事务提交后被发送到 MQ，ack 后从表中删除
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      placeholder: 消息一直留在表中，next_retry_time 也不更新
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      placeholder: "0.0.3.3"
+    validations:
+      required: true
+
+  - type: input
+    id: spring-boot
+    attributes:
+      label: Spring Boot 版本
+      placeholder: "2.7.15"
+
+  - type: input
+    id: jdk
+    attributes:
+      label: JDK 版本
+      placeholder: "1.8.0_392"
+
+  - type: dropdown
+    id: mq
+    attributes:
+      label: MQ 类型
+      options:
+        - RabbitMQ
+        - Kafka (尚未支持)
+        - RocketMQ (尚未支持)
+        - 其他
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 异常堆栈
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查
+      options:
+        - label: 我已经搜索过现有 Issue，没有重复
+          required: true
+        - label: 我已经阅读 README 和 ROADMAP，确认不是已知问题
+          required: true
