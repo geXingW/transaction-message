@@ -52,8 +52,12 @@ class RabbitMQTransactionMessageSenderTest {
         // 执行
         sender.send(message);
 
-        // 验证：SIMPLE 模式按 queue 直接投递，payload + CorrelationData 一并传入
-        verify(rabbitTemplate).convertAndSend(eq("test-queue"), eq("test payload"), any(CorrelationData.class));
+        // 验证：SIMPLE 模式按 queue 直接投递，payload + CorrelationData 一并传入。
+        // 注意：RabbitTemplate 同时有 (String, Object, CorrelationData) 和 (String, String, Object) 两种 3 参重载，
+        // mockito.eq("test payload") 返回 String 会造成 javac 编译期歧义。
+        // 这里把 payload 显式声明为 Object，强制 javac 选中带 CorrelationData 的那个重载。
+        Object payload = "test payload";
+        verify(rabbitTemplate).convertAndSend(eq("test-queue"), eq(payload), any(CorrelationData.class));
     }
 
     @Test
