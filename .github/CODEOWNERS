@@ -1,0 +1,8 @@
+# Default reviewers - all changes
+* @geXingW
+
+# Workflows / CI 改动
+/.github/ @geXingW
+
+# Core 模块改动需要更严格审查
+/spring-transaction-message/ @geXingW

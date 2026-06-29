@@ -1,0 +1,88 @@
+# 标签配置，用于 github-label-sync 同步
+# 用法：npx github-label-sync --access-token $GITHUB_TOKEN --labels .github/labels.yml geXingW/transaction-message
+
+# === Type 类型 ===
+- name: bug
+  color: d73a4a
+  description: 缺陷
+- name: enhancement
+  color: a2eeef
+  description: 新功能 / 改进
+- name: documentation
+  color: 0075ca
+  description: 文档相关
+- name: refactor
+  color: cfd3d7
+  description: 重构（无功能变更）
+- name: test
+  color: bfd4f2
+  description: 测试相关
+- name: chore
+  color: ededed
+  description: 工程化、依赖、CI
+
+# === Priority 优先级 ===
+- name: "priority: P0"
+  color: b60205
+  description: 阻塞，必须立即处理
+- name: "priority: P1"
+  color: d93f0b
+  description: 重要，本版本必须修
+- name: "priority: P2"
+  color: fbca04
+  description: 锦上添花
+
+# === Status 状态 ===
+- name: needs-triage
+  color: e99695
+  description: 待分诊
+- name: in-progress
+  color: 0e8a16
+  description: 进行中
+- name: blocked
+  color: 5319e7
+  description: 被阻塞
+- name: needs-review
+  color: 1d76db
+  description: 待 review
+- name: ready-to-merge
+  color: 0e8a16
+  description: 已 approve 待合入
+
+# === Scope 模块 ===
+- name: "scope: core"
+  color: c5def5
+  description: spring-transaction-message 核心模块
+- name: "scope: rabbitmq"
+  color: c5def5
+  description: RabbitMQ binder
+- name: "scope: example"
+  color: c5def5
+  description: 示例工程
+- name: "scope: ci"
+  color: c5def5
+  description: CI / 工程化
+
+# === 友好度 ===
+- name: good first issue
+  color: 7057ff
+  description: 适合新手的任务
+- name: help wanted
+  color: 008672
+  description: 欢迎贡献者认领
+
+# === 杂项 ===
+- name: dependencies
+  color: 0366d6
+  description: 依赖升级
+- name: github-actions
+  color: 000000
+  description: GitHub Actions 改动
+- name: duplicate
+  color: cfd3d7
+- name: invalid
+  color: e4e669
+- name: wontfix
+  color: ffffff
+- name: question
+  color: d876e3
