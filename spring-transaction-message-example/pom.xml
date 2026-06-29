@@ -10,7 +10,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>spring-transaction-message-example-rabbitmq</module>
-        <module>spring-transaction-message-example-consumer</module>
+        <!--
+            spring-transaction-message-example-consumer 子模块目录尚未建立，
+            为避免阻塞 CI 聚合构建，先注释。补齐 consumer 示例的工作另起 issue 跟进。
+        -->
     </modules>
 
     <properties>
