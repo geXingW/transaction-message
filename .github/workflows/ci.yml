@@ -28,8 +28,18 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Build with Maven
-        run: mvn -B -ntp clean verify
+      # 项目无根 aggregator pom，按依赖顺序顺序构建：
+      #   spring-transaction-message          (基础库，被下游依赖)
+      #   spring-transaction-message-rabbitmq (依赖基础库)
+      #   spring-transaction-message-example  (聚合 pom，依赖前两者)
+      - name: Build spring-transaction-message
+        run: mvn -B -ntp -f spring-transaction-message/pom.xml clean install -DskipTests=false
+
+      - name: Build spring-transaction-message-rabbitmq
+        run: mvn -B -ntp -f spring-transaction-message-rabbitmq/pom.xml clean install -DskipTests=false
+
+      - name: Build spring-transaction-message-example
+        run: mvn -B -ntp -f spring-transaction-message-example/pom.xml clean verify -DskipTests=false
 
       - name: Upload test reports
         if: always()
